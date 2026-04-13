@@ -96,6 +96,7 @@ public class LoveApp {
                 .content();
     }
 
+    // jdk21 新增的
     record LoveReport(String title, List<String> suggestions) {
 
     }
@@ -114,6 +115,7 @@ public class LoveApp {
                 .user(message)
                 .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
                 .call()
+                //  结构化解析结果
                 .entity(LoveReport.class);
         log.info("loveReport: {}", loveReport);
         return loveReport;
