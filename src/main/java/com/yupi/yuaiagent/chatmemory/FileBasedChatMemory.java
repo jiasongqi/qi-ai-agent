@@ -22,6 +22,9 @@ public class FileBasedChatMemory implements ChatMemory {
     private final String BASE_DIR;
     private static final Kryo kryo = new Kryo();
 
+    /**
+     * * 指定生成策略
+     */
     static {
         kryo.setRegistrationRequired(false);
         // 设置实例化策略
@@ -57,6 +60,11 @@ public class FileBasedChatMemory implements ChatMemory {
         }
     }
 
+    /**
+     * *获取或者创建会话ID列表
+     * @param conversationId
+     * @return
+     */
     private List<Message> getOrCreateConversation(String conversationId) {
         File file = getConversationFile(conversationId);
         List<Message> messages = new ArrayList<>();
