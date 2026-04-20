@@ -3,6 +3,11 @@ spring:
     name: yu-ai-agent
   profiles:
     active: local
+  autoconfigure:
+    exclude:
+      # 禁用 DashScope 自动配置，使用 OpenAI
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeChatAutoConfiguration
 # 临时注释掉，便于大家开发调试和部署（实际填写 PgVector 数据库信息）
 #  datasource:
 #    url: xxx
@@ -15,10 +20,12 @@ spring:
       chat:
         options:
           model: qwen-plus
-    ollama:
-      base-url: http://localhost:11434
+    openai:
+      api-key: "dummy"
+      base-url: http://172.20.1.159:8001
       chat:
-        model: gemma3:1b
+        options:
+          model: Qwen/Qwen3-32B
 # 临时注释掉，便于大家开发调试和部署（实际需要启动 MCP 服务）
 #    mcp:
 #      client:
