@@ -12,9 +12,12 @@ import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * PDF 生成工具
+ * 已修复：路径遍历防护（fileName 规范化校验）
  */
 public class PDFGenerationTool {
 
@@ -23,12 +26,15 @@ public class PDFGenerationTool {
             @ToolParam(description = "Name of the file to save the generated PDF") String fileName,
             @ToolParam(description = "Content to be included in the PDF") String content) {
         String fileDir = FileConstant.FILE_SAVE_DIR + "/pdf";
-        String filePath = fileDir + "/" + fileName;
+        String safePath = sanitizeFileName(fileName, fileDir);
+        if (safePath == null) {
+            return "Error: Invalid file name - path traversal detected";
+        }
         try {
             // 创建目录
             FileUtil.mkdir(fileDir);
             // 创建 PdfWriter 和 PdfDocument 对象
-            try (PdfWriter writer = new PdfWriter(filePath);
+            try (PdfWriter writer = new PdfWriter(safePath);
                  PdfDocument pdf = new PdfDocument(writer);
                  Document document = new Document(pdf)) {
                 // 自定义字体（需要人工下载字体文件到特定目录）
@@ -44,9 +50,28 @@ public class PDFGenerationTool {
                 // 添加段落并关闭文档
                 document.add(paragraph);
             }
-            return "PDF generated successfully to: " + filePath;
+            return "PDF generated successfully to: " + safePath;
         } catch (IOException e) {
             return "Error generating PDF: " + e.getMessage();
         }
+    }
+
+    /**
+     * 文件名安全校验：防止路径遍历攻击
+     */
+    private String sanitizeFileName(String fileName, String baseDir) {
+        if (fileName == null || fileName.isEmpty()) {
+            return null;
+        }
+        if (fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")
+                || fileName.startsWith("~") || fileName.startsWith(".")) {
+            return null;
+        }
+        Path base = Paths.get(baseDir).toAbsolutePath().normalize();
+        Path resolved = base.resolve(fileName).normalize();
+        if (!resolved.startsWith(base)) {
+            return null;
+        }
+        return resolved.toString();
     }
 }

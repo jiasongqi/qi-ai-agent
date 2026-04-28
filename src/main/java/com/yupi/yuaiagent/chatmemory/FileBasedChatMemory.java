@@ -20,16 +20,12 @@ import java.util.List;
 public class FileBasedChatMemory implements ChatMemory {
 
     private final String BASE_DIR;
-    private static final Kryo kryo = new Kryo();
-
-    /**
-     * * 指定生成策略
-     */
-    static {
+    private static final ThreadLocal<Kryo> kryoThreadLocal = ThreadLocal.withInitial(() -> {
+        Kryo kryo = new Kryo();
         kryo.setRegistrationRequired(false);
-        // 设置实例化策略
         kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
-    }
+        return kryo;
+    });
 
     // 构造对象时，指定文件保存目录
     public FileBasedChatMemory(String dir) {
@@ -70,7 +66,7 @@ public class FileBasedChatMemory implements ChatMemory {
         List<Message> messages = new ArrayList<>();
         if (file.exists()) {
             try (Input input = new Input(new FileInputStream(file))) {
-                messages = kryo.readObject(input, ArrayList.class);
+                messages = kryoThreadLocal.get().readObject(input, ArrayList.class);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -81,7 +77,7 @@ public class FileBasedChatMemory implements ChatMemory {
     private void saveConversation(String conversationId, List<Message> messages) {
         File file = getConversationFile(conversationId);
         try (Output output = new Output(new FileOutputStream(file))) {
-            kryo.writeObject(output, messages);
+            kryoThreadLocal.get().writeObject(output, messages);
         } catch (IOException e) {
             e.printStackTrace();
         }

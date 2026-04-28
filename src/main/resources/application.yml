@@ -8,11 +8,11 @@ spring:
       # 禁用 DashScope 自动配置，使用 OpenAI
       - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeAutoConfiguration
       - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeChatAutoConfiguration
-# 临时注释掉，便于大家开发调试和部署（实际填写 PgVector 数据库信息）
-#  datasource:
-#    url: xxx
-#    username: root
-#    password: 123456
+  datasource:
+    url: xxx
+    username: test
+    password: test
+    driver-class-name: org.postgresql.Driver
   ai:
     dashscope:
       # 需要替换为你自己的 key
@@ -22,7 +22,7 @@ spring:
           model: qwen-plus
     openai:
       api-key: "dummy"
-      base-url: http://172.20.1.159:8001
+      base-url: xxxx
       chat:
         options:
           model: Qwen/Qwen3-32B
@@ -57,7 +57,7 @@ springdoc:
   group-configs:
     - group: 'default'
       paths-to-match: '/**'
-      packages-to-scan: com.yupi.yuaiagent.controller
+      packages-to-scan: com.yupi.yuaiagent.controller,com.yupi.yuaiagent.competitor.controller
 # knife4j config
 knife4j:
   enable: true
@@ -67,7 +67,20 @@ knife4j:
 search-api:
   # 需要替换为你自己的 key
   api-key: 你的 API Key
+# 竞品监控配置
+competitor:
+  monitor:
+    review:
+      country: id
+      page-size: 50
+      max-pages: 5
+    schedule:
+      cron: "0 0 9 * * ?"
+    analysis:
+      dimensions: threshold,product,speed,sentiment,risk
+
 # 修改日志级别，查看 Spring AI 更多调用细节
 logging:
   level:
     org.springframework.ai: DEBUG
+    com.yupi.yuaiagent.competitor: DEBUG
